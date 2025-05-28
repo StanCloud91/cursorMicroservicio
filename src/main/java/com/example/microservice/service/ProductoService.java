@@ -1,5 +1,6 @@
 package com.example.microservice.service;
 
+import com.example.microservice.dto.ProductoDTO;
 import com.example.microservice.model.Producto;
 import com.example.microservice.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,20 @@ public class ProductoService {
     }
 
     @Transactional
-    public Producto save(Producto producto) {
-        if (producto.getCodigoSku() != null && 
-            productoRepository.existsByCodigoSku(producto.getCodigoSku())) {
+    public Producto createFromDTO(ProductoDTO dto) {
+        if (dto.getCodigoSku() != null && productoRepository.existsByCodigoSku(dto.getCodigoSku())) {
             throw new RuntimeException("Ya existe un producto con este código SKU");
         }
+        
+        Producto producto = new Producto();
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setCodigoSku(dto.getCodigoSku());
+        producto.setPrecio(dto.getPrecio());
+        producto.setStock(dto.getStock());
+        producto.setCategoria(dto.getCategoria());
+        producto.setUnidadMedida(dto.getUnidadMedida());
+        
         return productoRepository.save(producto);
     }
 
@@ -38,6 +48,14 @@ public class ProductoService {
         if (!productoRepository.existsById(id)) {
             throw new RuntimeException("Producto no encontrado");
         }
+        
+        Producto productoExistente = productoRepository.findById(id).get();
+        if (producto.getCodigoSku() != null && 
+            !producto.getCodigoSku().equals(productoExistente.getCodigoSku()) && 
+            productoRepository.existsByCodigoSku(producto.getCodigoSku())) {
+            throw new RuntimeException("Ya existe un producto con este código SKU");
+        }
+        
         producto.setId(id);
         return productoRepository.save(producto);
     }
@@ -65,11 +83,12 @@ public class ProductoService {
         Producto producto = productoRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
         
-        if (producto.getStock() + cantidad < 0) {
+        int nuevoStock = producto.getStock() + cantidad;
+        if (nuevoStock < 0) {
             throw new RuntimeException("Stock insuficiente");
         }
         
-        producto.setStock(producto.getStock() + cantidad);
+        producto.setStock(nuevoStock);
         return productoRepository.save(producto);
     }
 } 

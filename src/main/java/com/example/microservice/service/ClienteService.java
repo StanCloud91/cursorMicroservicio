@@ -1,5 +1,6 @@
 package com.example.microservice.service;
 
+import com.example.microservice.dto.ClienteDTO;
 import com.example.microservice.model.Cliente;
 import com.example.microservice.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +26,22 @@ public class ClienteService {
     }
 
     @Transactional
-    public Cliente save(Cliente cliente) {
-        if (clienteRepository.existsByEmail(cliente.getEmail())) {
+    public Cliente createFromDTO(ClienteDTO dto) {
+        if (clienteRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Ya existe un cliente con este email");
         }
-        if (cliente.getNumeroDocumento() != null && 
-            clienteRepository.existsByNumeroDocumento(cliente.getNumeroDocumento())) {
+        if (dto.getNumeroDocumento() != null && clienteRepository.existsByNumeroDocumento(dto.getNumeroDocumento())) {
             throw new RuntimeException("Ya existe un cliente con este número de documento");
         }
+        
+        Cliente cliente = new Cliente();
+        cliente.setNombre(dto.getNombre());
+        cliente.setApellido(dto.getApellido());
+        cliente.setEmail(dto.getEmail());
+        cliente.setNumeroDocumento(dto.getNumeroDocumento());
+        cliente.setDireccion(dto.getDireccion());
+        cliente.setTelefono(dto.getTelefono());
+        
         return clienteRepository.save(cliente);
     }
 
@@ -41,6 +50,19 @@ public class ClienteService {
         if (!clienteRepository.existsById(id)) {
             throw new RuntimeException("Cliente no encontrado");
         }
+        
+        Cliente clienteExistente = clienteRepository.findById(id).get();
+        if (!clienteExistente.getEmail().equals(cliente.getEmail()) && 
+            clienteRepository.existsByEmail(cliente.getEmail())) {
+            throw new RuntimeException("Ya existe un cliente con este email");
+        }
+        
+        if (cliente.getNumeroDocumento() != null && 
+            !cliente.getNumeroDocumento().equals(clienteExistente.getNumeroDocumento()) && 
+            clienteRepository.existsByNumeroDocumento(cliente.getNumeroDocumento())) {
+            throw new RuntimeException("Ya existe un cliente con este número de documento");
+        }
+        
         cliente.setId(id);
         return clienteRepository.save(cliente);
     }

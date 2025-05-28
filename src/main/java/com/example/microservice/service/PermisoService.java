@@ -1,5 +1,6 @@
 package com.example.microservice.service;
 
+import com.example.microservice.dto.PermisoDTO;
 import com.example.microservice.model.Permiso;
 import com.example.microservice.repository.PermisoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,20 @@ public class PermisoService {
     }
 
     @Transactional
-    public Permiso save(Permiso permiso) {
-        if (permisoRepository.existsByNombre(permiso.getNombre())) {
+    public Permiso createFromDTO(PermisoDTO dto) {
+        if (permisoRepository.existsByNombre(dto.getNombre())) {
             throw new RuntimeException("Ya existe un permiso con este nombre");
         }
+        
+        Permiso permiso = new Permiso();
+        permiso.setNombre(dto.getNombre());
+        permiso.setDescripcion(dto.getDescripcion());
+        permiso.setModulo(dto.getModulo());
+        permiso.setPuedeLeer(dto.isPuedeLeer());
+        permiso.setPuedeCrear(dto.isPuedeCrear());
+        permiso.setPuedeActualizar(dto.isPuedeActualizar());
+        permiso.setPuedeEliminar(dto.isPuedeEliminar());
+        
         return permisoRepository.save(permiso);
     }
 
