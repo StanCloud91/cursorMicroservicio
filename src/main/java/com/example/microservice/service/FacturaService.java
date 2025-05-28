@@ -3,6 +3,7 @@ package com.example.microservice.service;
 import com.example.microservice.model.Factura;
 import com.example.microservice.model.DetalleFactura;
 import com.example.microservice.model.Producto;
+import com.example.microservice.model.EstadoFactura;
 import com.example.microservice.repository.FacturaRepository;
 import com.example.microservice.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +83,14 @@ public class FacturaService {
     @Transactional(readOnly = true)
     public List<Factura> findByFechaEmisionBetween(LocalDateTime inicio, LocalDateTime fin) {
         return facturaRepository.findByFechaEmisionBetween(inicio, fin);
+    }
+
+    @Transactional
+    public Factura actualizarEstado(Long id, EstadoFactura nuevoEstado) {
+        Factura factura = facturaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+        
+        factura.setEstado(nuevoEstado);
+        return facturaRepository.save(factura);
     }
 } 

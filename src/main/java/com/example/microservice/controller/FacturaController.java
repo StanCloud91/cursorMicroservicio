@@ -1,6 +1,7 @@
 package com.example.microservice.controller;
 
 import com.example.microservice.model.Factura;
+import com.example.microservice.model.EstadoFactura;
 import com.example.microservice.service.FacturaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -84,5 +85,27 @@ public class FacturaController {
             @Parameter(description = "Fecha de fin (formato ISO)") 
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fin) {
         return facturaService.findByFechaEmisionBetween(inicio, fin);
+    }
+
+    @Operation(summary = "Actualizar estado de factura", 
+              description = "Actualiza el estado de una factura existente (PENDIENTE, PAGADA, ANULADA, VENCIDA)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Estado de factura actualizado exitosamente",
+                    content = @Content(schema = @Schema(implementation = Factura.class))),
+        @ApiResponse(responseCode = "404", description = "Factura no encontrada"),
+        @ApiResponse(responseCode = "400", description = "Estado de factura inválido")
+    })
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<Factura> actualizarEstado(
+            @Parameter(description = "ID de la factura") @PathVariable Long id,
+            @Parameter(description = "Nuevo estado de la factura", 
+                      schema = @Schema(allowableValues = {"PENDIENTE", "PAGADA", "ANULADA", "VENCIDA"}))
+            @RequestParam EstadoFactura estado) {
+        try {
+            Factura facturaActualizada = facturaService.actualizarEstado(id, estado);
+            return ResponseEntity.ok(facturaActualizada);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 } 
